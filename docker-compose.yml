@@ -1,0 +1,42 @@
+version: "3.9"
+services:
+  leadsync_db:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    container_name: leadsync_db
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=leadsync@123
+      - MSSQL_DATABASE=leadsync
+    volumes:
+      - ./data/:/var/lib/mssql/
+    networks:
+      - leadsync-network
+    healthcheck:
+      test: [ "CMD", "/opt/mssql-tools/bin/sqlcmd", "-U", "SA", "-P", "leadsync@123", "-Q", "select 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: api
+    container_name: web_api_application
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5001
+    restart: on-failure
+    networks:
+      - leadsync-network
+    depends_on:
+      leadsync_db:
+        condition: service_healthy
+
+networks:
+    leadsync-network:
+        driver: bridge
