@@ -1,6 +1,7 @@
 using LeadSync.Api;
 using LeadSync.Application;
 using LeadSync.Infrastructure;
+using LeadSync.Infrastructure.Common; // Add this line
 
 var builder = WebApplication.CreateBuilder(args);
 {
@@ -23,6 +24,7 @@ var app = builder.Build();
         app.UseSwaggerUI();
         app.UseDeveloperExceptionPage();
     }
+    DatabaseMigration.MigrateDatabase(app.Services); // Add this line
 
     app.UseHttpsRedirection();
     app.MapControllers();
